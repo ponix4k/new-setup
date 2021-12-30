@@ -92,3 +92,8 @@ colorscheme desert
 nnoremap <silent> <leader>gd :YcmCompleter GoTo <CR> 
 nnoremap <silent> <leader>gf :YcmCompleter FixIt <CR>
 
+" NERDTrees File highlighting only the glyph/icon
+" test highlight just the glyph (icons) in nerdtree:
+autocmd filetype nerdtree highlight haskell_icon ctermbg=none ctermfg=Red guifg=#ffa500
+autocmd filetype nerdtree highlight html_icon ctermbg=none ctermfg=Red guifg=#ffa500
+autocmd filetype nerdtree highlight go_icon ctermbg=none ctermfg=Red guifg=#ffa500

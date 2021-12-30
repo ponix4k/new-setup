@@ -28,7 +28,7 @@ call vundle#begin()
 Plugin 'plasticboy/vim-markdown'
 Plugin 'airblade/vim-rooter'
 Plugin 'vim-utils/vim-man'
-Plugin 'git@github.com:Valloric/YouCompleteMe.git'
+# Plugin 'git@github.com:Valloric/YouCompleteMe.git'
 Plugin 'VundleVim/Vundle.vim'
 
 "NerdTree
@@ -36,7 +36,6 @@ Plugin 'preservim/nerdtree'
 Plugin 'tiagofumo/vim-nerdtree-syntax-highlight'
 Plugin 'Xuyuanp/nerdtree-git-plugin'
 Plugin 'ryanoasis/vim-devicons'
-
 
 "FuzzyFinder
 Plugin 'junegunn/fzf', { 'do': {-> fzf#install() } }
@@ -89,8 +88,8 @@ let g:NERDTreeGitStatusIndicatorMapCustom = { 'Staged' :'✚',
 colorscheme desert
 
 " YCM   
-nnoremap <silent> <leader>gd :YcmCompleter GoTo <CR> 
-nnoremap <silent> <leader>gf :YcmCompleter FixIt <CR>
+# nnoremap <silent> <leader>gd :YcmCompleter GoTo <CR> 
+# nnoremap <silent> <leader>gf :YcmCompleter FixIt <CR>
 
 " NERDTrees File highlighting only the glyph/icon
 " test highlight just the glyph (icons) in nerdtree:
