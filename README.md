@@ -1,3 +1,7 @@
+# New Setup
+Running the install.sh will run through and install basic stuff needed to get up and running
+
+
 # vim-setup
 a Small set of configs to make the default vim usable
 
@@ -18,7 +22,8 @@ a Small set of configs to make the default vim usable
 ```
 
 N.B.
+---
 
 If you are using putty you will need to set the terminal to goto the following menu 
 
-Connection > Data and in the " Terminal-type string paste in the following:  `xterm-256color` save and then reconnect  
+Connection > Data and in the " Terminal-type" string paste in the following:  `xterm-256color` save and then reconnect  
