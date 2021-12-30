@@ -16,3 +16,9 @@ a Small set of configs to make the default vim usable
 <leader> + k Move the Selector Up
 <leader> + l Move the Selector Right  
 ```
+
+N.B.
+
+If you are using putty you will need to set the terminal to goto the following menu 
+
+Connection > Data and in the " Terminal-type string paste in the following:  `xterm-256color` save and then reconnect  

@@ -28,7 +28,7 @@ call vundle#begin()
 Plugin 'plasticboy/vim-markdown'
 Plugin 'airblade/vim-rooter'
 Plugin 'vim-utils/vim-man'
-Plugin 'git@github.com:Valloric/YouCompleteMe.git'
+"Plugin 'git@github.com:Valloric/YouCompleteMe.git'
 Plugin 'VundleVim/Vundle.vim'
 
 "NerdTree
