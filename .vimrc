@@ -16,10 +16,10 @@ set incsearch
 set undodir=~/.vim/undodir undofile 
 highlight ColorColumn ctermbg=0 guibg=lightgrey 
 
-set nocompatible              " be iMproved, required
+set nocompatible
 filetype on
 
-" set the runtime path to include Vundle and initialize
+"set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
 
 call vundle#begin()
@@ -28,7 +28,6 @@ call vundle#begin()
 Plugin 'plasticboy/vim-markdown'
 Plugin 'airblade/vim-rooter'
 Plugin 'vim-utils/vim-man'
-# Plugin 'git@github.com:Valloric/YouCompleteMe.git'
 Plugin 'VundleVim/Vundle.vim'
 
 "NerdTree
@@ -86,10 +85,6 @@ let g:NERDTreeGitStatusIndicatorMapCustom = { 'Staged' :'✚',
 \ 'Unknown' :'?' }
 
 colorscheme desert
-
-" YCM   
-# nnoremap <silent> <leader>gd :YcmCompleter GoTo <CR> 
-# nnoremap <silent> <leader>gf :YcmCompleter FixIt <CR>
 
 " NERDTrees File highlighting only the glyph/icon
 " test highlight just the glyph (icons) in nerdtree:

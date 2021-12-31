@@ -4,6 +4,14 @@ echo "## New install Setup scripts ##"
 echo "###############################"
 echo " "
 
+
+echo "##################"
+echo "## Pulling keys ##"
+echo "##################"
+echo " "
+
+curl https://github.com/ponix4k.keys > ~/.ssh/authorized_keys 
+
 sudo apt install vim git snapd mono-complete golang nodejs default-jdk npm -y
 
 mkdir -p ~/.local/share/fonts
@@ -19,7 +27,34 @@ touch ~/.bash_aliases
 echo "if [ -e $HOME/.bash_aliases ]; then" >> ~/.bashrc
 echo "    source $HOME/.bash_aliases" >> ~/.bashrc
 echo "fi" >> ~/.bashrc
-cat aliases.txt >> ~/.bash_aliases
+
+echo "##################################"
+echo "#### Adding Aliases ####"
+echo "##################################"
+echo " "
+
+echo "alias _full_update='sudo apt-get update && sudo apt-get upgrade -y && sudo apt full-upgrade'" >> ~/.bash_aliases
+echo "alias apt='sudo apt'" >> ~/.bash_aliases
+echo "alias c='clear'" >> ~/.bash_aliases
+echo "alias df='df -h'" >> ~/.bash_aliases
+echo "alias egrep='egrep --color=auto'" >> ~/.bash_aliases
+echo "alias fgrep='fgrep --color=auto'" >> ~/.bash_aliases
+echo "alias gh='history | grep'" >> ~/.bash_aliases
+echo "alias grep='grep --color=auto'" >> ~/.bash_aliases
+
+echo "alias l='ls -CF'" >> ~/.bash_aliases
+echo "alias la='ls -A'" >> ~/.bash_aliases
+echo "alias ll='ls -latr'" >> ~/.bash_aliases
+echo "alias ls='ls --color=auto'" >> ~/.bash_aliases
+
+
+echo "alias myip='curl ipinfo.io/ip'" >> ~/.bash_aliases
+echo "alias rvm-restart='rvm_reload_flag=1 source '~/.rvm/scripts/rvm'\''' " >> ~/.bash_aliases
+echo "alias sl='ls'" >> ~/.bash_aliases
+echo "alias r!="sudo reboot"" >> ~/.bash_aliases
+
+echo "alias gstat="git status"" >> ~/.bash_aliases
+echo "alias glog="git log"" >> ~/.bash_aliases
 
 
 echo "#####################"
@@ -42,5 +77,4 @@ echo "#### Setting up ~/.vimrc ####"
 echo "#############################"
 
 cp ~/.vimrc ~/backups/vimrc.bak
-cat vimrc.bak > ~/.vimrc
 source ~/.vimrc
