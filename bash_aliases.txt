@@ -1,4 +1,4 @@
-alias _full_update='sudo apt-get update && sudo apt-get upgrade -y && sudo apt full-upgrade'
+alias _full_update='sudo apt-get update && sudo apt-get upgrade -y && sudo apt full-upgrade -y && sudo apt dist-upgrade -y'
 alias apt='sudo apt'
 alias c='clear'
 alias df='df -h'
