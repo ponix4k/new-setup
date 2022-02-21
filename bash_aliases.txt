@@ -1,6 +1,6 @@
 alias _full_update='sudo apt-get update && sudo apt-get upgrade -y && sudo apt full-upgrade -y && sudo apt dist-upgrade -y'
 alias apt='sudo apt'
-alias c='clear'
+alias c!='clear'
 alias df='df -h'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
@@ -17,3 +17,5 @@ alias r!='sudo reboot'
 
 alias gstat='git status'
 alias glog='git log'
+
+alias !rup='rails s -b 0.0.0.0'

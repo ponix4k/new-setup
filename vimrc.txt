@@ -4,7 +4,7 @@ set termguicolors
 set encoding=utf8
 set guifont=DroidSansMono\ Nerd\ Font\ 11
 
-set tabstop=4 softtabstop=4 shiftwidth=4 
+set tabstop=4 softtabstop=4 shiftwidth=4
 set nu expandtab
 set smartindent
 set nu
@@ -13,8 +13,8 @@ set smartcase
 set noswapfile
 set nobackup
 set incsearch
-set undodir=~/.vim/undodir undofile 
-highlight ColorColumn ctermbg=0 guibg=lightgrey 
+set undodir=~/.vim/undodir undofile
+highlight ColorColumn ctermbg=0 guibg=lightgrey
 
 set nocompatible              " be iMproved, required
 filetype on
@@ -24,12 +24,34 @@ set rtp+=~/.vim/bundle/Vundle.vim
 
 call vundle#begin()
 
-"Plugins
-Plugin 'plasticboy/vim-markdown'
+"Plugins"
+Plugin 'VundleVim/Vundle.vim'
+Plugin 'editorconfig/editorconfig-vim'
 Plugin 'airblade/vim-rooter'
 Plugin 'vim-utils/vim-man'
+Plugin 'christoomey/vim-tmux-navigator'
+
+
+"Formatting"
+Plugin 'ntpeters/vim-better-whitespace'
+Plugin 'mattn/emmet-vim'
+Plugin 'skanehira/docker-compose.vim'
+
+
+"Linter"
+Plugin 'twbs/bootlint'
+Plugin 'adrienverge/yamllint'
+Plugin 'codenothing/jsonlint'
+
+
+"Languages"
+Plugin 'tpope/vim-rails'
+Plugin 'vim-ruby/vim-ruby'
+Plugin 'lifepillar/pgsql.vim'
+Plugin 'plasticboy/vim-markdown'
+
+
 "Plugin 'git@github.com:Valloric/YouCompleteMe.git'
-Plugin 'VundleVim/Vundle.vim'
 
 "NerdTree
 Plugin 'preservim/nerdtree'
@@ -48,6 +70,7 @@ Plugin 'bluz71/vim-nightfly-guicolors'
 Plugin 'ghifarit53/daycula-vim' , {'branch' : 'main'}
 Plugin 'artanikin/vim-synthwave84'
 Plugin 'godlygeek/tabular'
+Plugin 'tomasr/molokai'
 
 call vundle#end()
 
@@ -57,7 +80,7 @@ let g:netrw_banner = 0
 let g:netrw_winsize = 25
 
 nnoremap <leader>h :wincmd h <CR>
-nnoremap <leader>j :wincmd j<CR> 
+nnoremap <leader>j :wincmd j<CR>
 nnoremap <leader>k :wincmd k<CR>
 nnoremap <leader>l :wincmd l<CR>
 
@@ -88,8 +111,8 @@ let g:NERDTreeGitStatusIndicatorMapCustom = { 'Staged' :'✚',
 
 colorscheme desert
 
-" YCM   
-nnoremap <silent> <leader>gd :YcmCompleter GoTo <CR> 
+" YCM
+nnoremap <silent> <leader>gd :YcmCompleter GoTo <CR>
 nnoremap <silent> <leader>gf :YcmCompleter FixIt <CR>
 
 " NERDTrees File highlighting only the glyph/icon

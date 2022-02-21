@@ -16,7 +16,7 @@ read -p "Enter Github Username: " username
 touch ~/.ssh/authorized_keys
 curl https://github.com/$username.keys > ~/.ssh/authorized_keys
 
-sudo apt install vim git tmux snapd mono-complete golang nodejs default-jdk npm -y
+sudo apt install -y vim git tmux snapd mono-complete golang nodejs default-jdk npm libpq-dev postgresql
 
 mkdir -p ~/.local/share/fonts
 cd ~/.local/share/fonts && curl -fLo "Droid Sans Mono for Powerline Nerd Font Complete.otf" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf
@@ -35,8 +35,8 @@ echo "    source $HOME/.bash_aliases" >> ~/.bashrc
 echo "fi" >> ~/.bashrc
 
 echo "##################################"
-echo "#### Adding Aliases ####"
-echo "#################################"
+echo "#### Adding Git Branch Status ####"
+echo "##################################"
 echo " "
 
 
@@ -66,6 +66,3 @@ cat ~/.bash_aliases
 source ~/.vimrc
 vim +PluginInstall +qall
 
-cp /etc/ssh/sshd_config ~/backups/sshd_config.bak
-sudo echo $wd/sshd_config.txt > /etc/ssh/sshd_config
-sudo systemctl restart ssh
