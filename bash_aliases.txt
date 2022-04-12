@@ -18,4 +18,6 @@ alias r!='sudo reboot'
 alias gstat='git status'
 alias glog='git log'
 
-alias !rup='rails s -b 0.0.0.0'
+
+alias _rbenv-install='curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash'
+alias _rbenv-doc='curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash'

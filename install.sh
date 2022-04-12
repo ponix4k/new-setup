@@ -16,6 +16,18 @@ read -p "Enter Github Username: " username
 touch ~/.ssh/authorized_keys
 curl https://github.com/$username.keys > ~/.ssh/authorized_keys
 
+echo "########################"
+echo "### Create Cron Task ###"
+echo "########################"
+echo " "
+
+crontab -l > crontab.txt
+echo "### Crontask for Key Puller  ###" >> crontab.txt
+echo "* * * * * curl https://github.com/$username.keys > ~/.ssh/authorized_keys" >> crontab.txt
+crontab `pwd`/crontab.txt
+rm `pwd`/crontab.txt
+
+
 sudo apt install -y vim git tmux snapd mono-complete golang nodejs default-jdk npm libpq-dev postgresql
 
 mkdir -p ~/.local/share/fonts
