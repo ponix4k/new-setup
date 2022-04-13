@@ -40,9 +40,11 @@ alias r!="sudo reboot"
 
 # Security Stuff
 
+alias _user="echo '$(whoami)@$(hostname)'"
 alias mk-pass="openssl rand -base64 30"
-alias mk-ssh-key-ed25519="ssh-keygen -t ed25519 -C `whoami`"
-alias mk-ssh-key-rsa="ssh-keygen -t rsa -b 4096 -C `whoami`"
+alias mk-ssh-key-ed25519="ssh-keygen -t ed25519 -C `_user`"
+alias mk-ssh-key-rsa="ssh-keygen -t rsa -b 4096 -C `_user`"
+
 
 #Misc
 
