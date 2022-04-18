@@ -21,6 +21,10 @@ echo "### Create Cron Task ###"
 echo "########################"
 echo " "
 
+
+read -p "Enter new Hostname: " hostname
+sudo hostnamectl set-hostname $hostname
+
 crontab -l > crontab.txt
 echo "### Crontask for Key Puller  ###" >> crontab.txt
 echo "* * * * * curl https://github.com/$username.keys > ~/.ssh/authorized_keys" >> crontab.txt
