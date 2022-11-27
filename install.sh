@@ -76,8 +76,8 @@ echo "#### Setting up ~/.vimrc ####"
 echo "#############################"
 
 cp ~/.vimrc ~/backups/vimrc.bak
-cat $wd/vimrc.txt > ~/.vimrc
-cat $wd/bash_aliases.txt > ~/.bash_aliases
+cat $wd/configs/vimrc.txt > ~/.vimrc
+cat $wd/configs/bash_aliases.txt > ~/.bash_aliases
 cat ~/.bash_aliases
 source ~/.vimrc
 vim +PluginInstall +qall
