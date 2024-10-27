@@ -21,7 +21,6 @@ echo "### Create Cron Task ###"
 echo "########################"
 echo " "
 
-
 read -p "Enter new Hostname: " hostname
 sudo hostnamectl set-hostname $hostname
 
@@ -31,13 +30,17 @@ echo "* * * * * curl https://github.com/$username.keys > ~/.ssh/authorized_keys"
 crontab `pwd`/crontab.txt
 rm `pwd`/crontab.txt
 
-
 sudo apt install -y vim git tmux snapd mono-complete golang nodejs default-jdk npm libpq-dev postgresql openssh-server
 
 sudo ufw allow ssh
 
+echo "##################################"
+echo "####    Copying mono fonts    ####"
+echo "##################################"
+echo " "
+
 mkdir -p ~/.local/share/fonts
-cd ~/.local/share/fonts && curl -fLo "Droid Sans Mono for Powerline Nerd Font Complete.otf" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf
+cp fonts/*.otf ~/.local/share/fonts/
 cd $wd
 
 echo "Current dir:" `pwd`
@@ -47,16 +50,28 @@ echo "##################################"
 echo " "
 
 mkdir ~/backups
-touch ~/.bash_aliases
-echo "if [ -e $HOME/.bash_aliases ]; then" >> ~/.bashrc
-echo "    source $HOME/.bash_aliases" >> ~/.bashrc
-echo "fi" >> ~/.bashrc
+touch ~/.aliases
+
+if [ -n "$BASH_VERSION" ]; then
+    echo "You are using Bash version $BASH_VERSION."
+    echo "###"
+    echo "if [ -e $HOME/.aliases ]; then" >> ~/.bashrc
+    echo "    source $HOME/.aliases" >> ~/.bashrc
+    echo "fi" >> ~/.bashrc
+    echo "### \n"
+elif [ -n "$ZSH_VERSION" ]; then
+    echo "You are using Zsh version $ZSH_VERSION."
+     echo "if [ -e $HOME/.aliases ]; then" >> ~/.zshrc
+    echo "    source $HOME/.aliases" >> ~/.zshrc
+    echo "fi" >> ~/.zshrc
+else
+    echo "Unknown shell."
+fi
 
 echo "##################################"
 echo "#### Adding Git Branch Status ####"
 echo "##################################"
 echo " "
-
 
 echo "#####################"
 echo "## Install Vundle  ##"
@@ -79,8 +94,8 @@ echo "#############################"
 
 cp ~/.vimrc ~/backups/vimrc.bak
 cat $wd/configs/vimrc.txt > ~/.vimrc
-cat $wd/configs/bash_aliases.txt > ~/.bash_aliases
-cat ~/.bash_aliases
+cat $wd/configs/bash_aliases.txt > ~/.aliases
+cat ~/.aliases
 source ~/.vimrc
 vim +PluginInstall +qall
 
