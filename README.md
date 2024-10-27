@@ -1,10 +1,8 @@
 # New Setup
 Running the install.sh will run through and install basic stuff needed to get up and running
 
-
-# vim-setup
-a Small set of configs to make the default vim usable
-
+# vim-setup/nvim-setup
+A small set of configs to make the default vim usable
 
 ## NERDTree Commands
 
@@ -26,10 +24,12 @@ N.B.
 
 If you are using putty you will need to set the terminal to goto the following menu 
 
-Connection > Data and in the " Terminal-type" string paste in the following:  `xterm-256color` save and then reconnect  
+Connection > Data and in the " Terminal-type" string paste in the following: `xterm-256color` save and then reconnect
 
 ### Todo list
-
-- [] Fix the issues with the YouCompleteMeScript
-
-- [] Auto run plugin installs for vim
+- [x] Add droid fonts for nerdtree directly to the repo
+- [ ] Add custom backgrounds 
+- [ ] Fix the issues with the YouCompleteMeScript
+- [ ] Swap the installer to install neovim and the plugins
+- [ ] Add some of the fancy stuff to teh terminal 
+-
