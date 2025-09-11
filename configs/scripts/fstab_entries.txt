@@ -1,0 +1,2 @@
+//127.0.0.1/Shared /media/shared  cifs  credentials=/etc/.creds/smb.creds,uid=1001,gid=1001,file_mode=0755,dir_mode=0755 0       0
+//127.0.0.1/Shared/Projects ~/projects  cifs  credentials=/etc/.creds/project.creds,uid=1000,gid=1000,file_mode=0755,dir_mode=0755 0       0

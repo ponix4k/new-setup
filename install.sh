@@ -78,12 +78,12 @@ echo "## Install Vundle  ##"
 echo "#####################"
 echo " "
 
-git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+#git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 
-echo "#####################"
-echo "## Install YCM  ##"
-echo "#####################"
-echo " "
+#echo "#####################"
+#echo "## Install YCM  ##"
+#echo "#####################"
+#echo " "
 
 #cd ~/.vim/bundle/YouCompleteMe
 #python3 install.py --all
