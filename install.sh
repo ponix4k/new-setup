@@ -80,6 +80,18 @@ echo " "
 
 #git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 
+echo "#####################"
+echo "## Install WebApp-manager  ##"
+echo "#####################"
+echo " "
+
+cd ~/Downloads && wget 'http://packages.linuxmint.com/pool/main/w/webapp-manager/webapp-manager_1.4.5_all.deb' && \
+sudo dpkg -i webapp-manager_1.4.5_all.deb && \
+sudo apt update && \
+sudo apt --fix-broken install && \
+sudo dpkg --configure -a && \
+# rm webapp-manager_1.4.5_all.deb -y
+
 #echo "#####################"
 #echo "## Install YCM  ##"
 #echo "#####################"
