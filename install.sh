@@ -1,113 +1,147 @@
-#! /bin/bash
-wd=(`pwd`)
+#!/usr/bin/env bash
 
-echo "current directory: " $wd
-echo "###############################"
-echo "## New install Setup scripts ##"
-echo "###############################"
-echo " "
+set -u
 
-echo "##################"
-echo "## Pulling keys ##"
-echo "##################"
-echo " "
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+OS="$(uname -s)"
 
-read -p "Enter Github Username: " username
-touch ~/.ssh/authorized_keys
-curl https://github.com/$username.keys > ~/.ssh/authorized_keys
+section() {
+    printf '\n##################################\n#### %s\n##################################\n\n' "$1"
+}
 
-echo "########################"
-echo "### Create Cron Task ###"
-echo "########################"
-echo " "
+append_once() {
+    line="$1"
+    file="$2"
+    touch "$file"
+    grep -Fqx "$line" "$file" 2>/dev/null || printf '%s\n' "$line" >> "$file"
+}
 
-read -p "Enter new Hostname: " hostname
-sudo hostnamectl set-hostname $hostname
+section "New install setup"
+printf 'Installer directory: %s\n' "$SCRIPT_DIR"
 
-crontab -l > crontab.txt
-echo "### Crontask for Key Puller  ###" >> crontab.txt
-echo "* * * * * curl https://github.com/$username.keys > ~/.ssh/authorized_keys" >> crontab.txt
-crontab `pwd`/crontab.txt
-rm `pwd`/crontab.txt
-
-sudo apt install -y vim git tmux snapd mono-complete golang nodejs default-jdk npm libpq-dev postgresql openssh-server
-
-sudo ufw allow ssh
-
-echo "##################################"
-echo "####    Copying mono fonts    ####"
-echo "##################################"
-echo " "
-
-mkdir -p ~/.local/share/fonts
-cp fonts/*.otf ~/.local/share/fonts/
-cd $wd
-
-echo "Current dir:" `pwd`
-echo "##################################"
-echo "#### Create Files and Folders ####"
-echo "##################################"
-echo " "
-
-mkdir ~/backups
-touch ~/.aliases
-
-if [ -n "$BASH_VERSION" ]; then
-    echo "You are using Bash version $BASH_VERSION."
-    echo "###"
-    echo "if [ -e $HOME/.aliases ]; then" >> ~/.bashrc
-    echo "    source $HOME/.aliases" >> ~/.bashrc
-    echo "fi" >> ~/.bashrc
-    echo "### \n"
-elif [ -n "$ZSH_VERSION" ]; then
-    echo "You are using Zsh version $ZSH_VERSION."
-     echo "if [ -e $HOME/.aliases ]; then" >> ~/.zshrc
-    echo "    source $HOME/.aliases" >> ~/.zshrc
-    echo "fi" >> ~/.zshrc
+section "Pulling GitHub keys"
+printf 'Enter GitHub Username: '
+read -r username
+mkdir -p "$HOME/.ssh"
+chmod 700 "$HOME/.ssh"
+if curl -fsSL "https://github.com/${username}.keys" -o "$HOME/.ssh/authorized_keys"; then
+    chmod 600 "$HOME/.ssh/authorized_keys"
 else
-    echo "Unknown shell."
+    printf 'Warning: could not download keys for GitHub user %s.\n' "$username" >&2
 fi
 
-echo "##################################"
-echo "#### Adding Git Branch Status ####"
-echo "##################################"
-echo " "
+section "Setting hostname"
+printf 'Enter new Hostname (leave blank to keep the current hostname): '
+read -r new_hostname
+if [ -n "$new_hostname" ]; then
+    if [ "$OS" = "Darwin" ]; then
+        sudo scutil --set ComputerName "$new_hostname"
+        sudo scutil --set LocalHostName "$new_hostname"
+        sudo scutil --set HostName "$new_hostname"
+    elif command -v hostnamectl >/dev/null 2>&1; then
+        sudo hostnamectl set-hostname "$new_hostname"
+    else
+        printf 'Warning: hostname changes are unsupported on %s.\n' "$OS" >&2
+    fi
+fi
 
-echo "#####################"
-echo "## Install Vundle  ##"
-echo "#####################"
-echo " "
+section "Creating key-pull cron task"
+cron_line="* * * * * curl -fsSL https://github.com/${username}.keys -o \"$HOME/.ssh/authorized_keys\""
+current_crontab="$(crontab -l 2>/dev/null || true)"
+if ! printf '%s\n' "$current_crontab" | grep -Fqx "$cron_line"; then
+    { printf '%s\n' "$current_crontab"; printf '%s\n' "$cron_line"; } | crontab -
+fi
 
-#git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+section "Installing packages"
+if [ "$OS" = "Darwin" ]; then
+    if ! command -v brew >/dev/null 2>&1; then
+        section "Installing Homebrew"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-echo "#####################"
-echo "## Install WebApp-manager  ##"
-echo "#####################"
-echo " "
+        # The Homebrew installer does not update PATH in this running process.
+        if [ -x /opt/homebrew/bin/brew ]; then
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+        elif [ -x /usr/local/bin/brew ]; then
+            eval "$(/usr/local/bin/brew shellenv)"
+        fi
+    fi
 
-cd ~/Downloads && wget 'http://packages.linuxmint.com/pool/main/w/webapp-manager/webapp-manager_1.4.5_all.deb' && \
-sudo dpkg -i webapp-manager_1.4.5_all.deb && \
-sudo apt update && \
-sudo apt --fix-broken install && \
-sudo dpkg --configure -a && \
-# rm webapp-manager_1.4.5_all.deb -y
+    if command -v brew >/dev/null 2>&1; then
+        brew_bin="$(command -v brew)"
+        case "${SHELL:-}" in
+            */zsh) brew_profile="$HOME/.zprofile" ;;
+            *) brew_profile="$HOME/.bash_profile" ;;
+        esac
+        append_once "eval \"\$(${brew_bin} shellenv)\"" "$brew_profile"
+        brew install vim git tmux mono go node openjdk libpq postgresql
+    else
+        printf '%s\n' 'Homebrew installation failed; skipping macOS package installation.' >&2
+    fi
+elif command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get update
+    sudo apt-get install -y vim git tmux snapd mono-complete golang nodejs default-jdk npm libpq-dev postgresql openssh-server
+    if command -v ufw >/dev/null 2>&1; then
+        sudo ufw allow ssh
+    fi
+else
+    printf 'Warning: no supported package manager found; skipping package installation.\n' >&2
+fi
 
-#echo "#####################"
-#echo "## Install YCM  ##"
-#echo "#####################"
-#echo " "
+section "Copying mono fonts"
+if [ "$OS" = "Darwin" ]; then
+    font_dir="$HOME/Library/Fonts"
+else
+    font_dir="$HOME/.local/share/fonts"
+fi
+mkdir -p "$font_dir"
+for font in "$SCRIPT_DIR"/configs/fonts/*.otf; do
+    [ -e "$font" ] || continue
+    cp "$font" "$font_dir/"
+done
+if [ "$OS" != "Darwin" ] && command -v fc-cache >/dev/null 2>&1; then
+    fc-cache -f "$font_dir"
+fi
 
-#cd ~/.vim/bundle/YouCompleteMe
-#python3 install.py --all
+section "Creating files and folders"
+mkdir -p "$HOME/backups"
+touch "$HOME/.aliases"
 
-echo "#############################"
-echo "#### Setting up ~/.vimrc ####"
-echo "#############################"
+case "${SHELL:-}" in
+    */zsh) shell_rc="$HOME/.zshrc" ;;
+    *) shell_rc="$HOME/.bashrc" ;;
+esac
+append_once '# Load shared aliases installed by new-setup' "$shell_rc"
+append_once '[ -e "$HOME/.aliases" ] && source "$HOME/.aliases"' "$shell_rc"
 
-cp ~/.vimrc ~/backups/vimrc.bak
-cat $wd/configs/vimrc.txt > ~/.vimrc
-cat $wd/configs/bash_aliases.txt > ~/.aliases
-cat ~/.aliases
-source ~/.vimrc
-vim +PluginInstall +qall
+section "Installing Vundle"
+if [ ! -d "$HOME/.vim/bundle/Vundle.vim/.git" ]; then
+    git clone https://github.com/VundleVim/Vundle.vim.git "$HOME/.vim/bundle/Vundle.vim"
+fi
 
+if [ "$OS" = "Darwin" ]; then
+    section "Skipping Linux Mint WebApp Manager on macOS"
+else
+    section "Installing WebApp Manager"
+    webapp_deb="${TMPDIR:-/tmp}/webapp-manager_1.4.5_all.deb"
+    if curl -fL 'http://packages.linuxmint.com/pool/main/w/webapp-manager/webapp-manager_1.4.5_all.deb' -o "$webapp_deb"; then
+        sudo dpkg -i "$webapp_deb" || sudo apt-get --fix-broken install -y
+        sudo dpkg --configure -a
+    else
+        printf 'Warning: could not download WebApp Manager.\n' >&2
+    fi
+fi
+
+section "Setting up Vim and aliases"
+if [ -f "$HOME/.vimrc" ]; then
+    cp "$HOME/.vimrc" "$HOME/backups/vimrc.bak"
+fi
+cp "$SCRIPT_DIR/configs/vim/vimrc.txt" "$HOME/.vimrc"
+cp "$SCRIPT_DIR/configs/bash/bash_aliaes.txt" "$HOME/.aliases"
+
+if command -v vim >/dev/null 2>&1; then
+    vim +PluginInstall +qall
+else
+    printf 'Warning: vim is not available; skipping plugin installation.\n' >&2
+fi
+
+printf '\nSetup complete. Open a new terminal to load the aliases.\n'
