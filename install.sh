@@ -1,23 +1,83 @@
 #!/usr/bin/env bash
 
-set -u
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OS="$(uname -s)"
+SETUP_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/new-setup"
+
+if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+    printf '%s\n' 'Do not run this installer with sudo. Run ./install.sh as your normal user; it will request sudo when required.' >&2
+    exit 1
+fi
 
 section() {
     printf '\n##################################\n#### %s\n##################################\n\n' "$1"
 }
 
 append_once() {
-    line="$1"
-    file="$2"
+    local line="$1"
+    local file="$2"
     touch "$file"
     grep -Fqx "$line" "$file" 2>/dev/null || printf '%s\n' "$line" >> "$file"
 }
 
+run_installer() {
+    local installer="$1"
+    shift
+
+    if [ ! -f "$installer" ]; then
+        printf 'Missing installer: %s\n' "$installer" >&2
+        exit 1
+    fi
+
+    bash "$installer" "$@"
+}
+
+run_installer_once() {
+    local step_name="$1"
+    local installer="$2"
+    shift 2
+    local marker="$SETUP_STATE_DIR/$step_name.done"
+
+    if [ -f "$marker" ]; then
+        printf 'Skipping completed step: %s\n' "$step_name"
+        return 0
+    fi
+
+    run_installer "$installer" "$@"
+    mkdir -p "$SETUP_STATE_DIR"
+    touch "$marker"
+}
+
+desktop_tool_installed() {
+    case "$1" in
+        install-steam.sh) command -v steam >/dev/null 2>&1 ;;
+        install-discord.sh) command -v discord >/dev/null 2>&1 || snap list discord >/dev/null 2>&1 ;;
+        install-obsidian.sh) command -v obsidian >/dev/null 2>&1 || snap list obsidian >/dev/null 2>&1 ;;
+        install-flameshot.sh) command -v flameshot >/dev/null 2>&1 ;;
+        install-oh-my-zsh.sh) command -v zsh >/dev/null 2>&1 && [ -d "$HOME/.oh-my-zsh" ] ;;
+        install-vscode.sh) command -v code >/dev/null 2>&1 || command -v code-insiders >/dev/null 2>&1 ;;
+        install-docker-desktop.sh) [ -x /opt/docker-desktop/bin/docker-desktop ] ;;
+        install-vmware-workstation.sh) command -v vmware >/dev/null 2>&1 ;;
+        install-webapp-manager.sh) command -v webapp-manager >/dev/null 2>&1 ;;
+        *) return 1 ;;
+    esac
+}
+
 section "New install setup"
 printf 'Installer directory: %s\n' "$SCRIPT_DIR"
+
+section "Detecting shell"
+case "${SHELL:-}" in
+    */bash) detected_shell="Bash" ;;
+    */zsh) detected_shell="Zsh" ;;
+    */fish) detected_shell="Fish" ;;
+    "") detected_shell="unknown (SHELL is not set)" ;;
+    *) detected_shell="$(basename "$SHELL")" ;;
+esac
+printf 'Installer shell: Bash %s\n' "${BASH_VERSION:-unknown}"
+printf 'Login shell: %s\n' "$detected_shell"
 
 section "Pulling GitHub keys"
 printf 'Enter GitHub Username: '
@@ -46,11 +106,11 @@ if [ -n "$new_hostname" ]; then
 fi
 
 section "Creating key-pull cron task"
-cron_line="* * * * * curl -fsSL https://github.com/${username}.keys -o \"$HOME/.ssh/authorized_keys\""
+legacy_cron_line="* * * * * curl -fsSL https://github.com/${username}.keys -o \"$HOME/.ssh/authorized_keys\""
+cron_line="*/15 * * * * curl -fsSL https://github.com/${username}.keys -o \"$HOME/.ssh/authorized_keys\" >/dev/null 2>&1"
 current_crontab="$(crontab -l 2>/dev/null || true)"
-if ! printf '%s\n' "$current_crontab" | grep -Fqx "$cron_line"; then
-    { printf '%s\n' "$current_crontab"; printf '%s\n' "$cron_line"; } | crontab -
-fi
+current_crontab="$(printf '%s\n' "$current_crontab" | grep -Fvx -e "$legacy_cron_line" -e "$cron_line" || true)"
+{ printf '%s\n' "$current_crontab"; printf '%s\n' "$cron_line"; } | crontab -
 
 section "Installing packages"
 if [ "$OS" = "Darwin" ]; then
@@ -87,61 +147,54 @@ else
     printf 'Warning: no supported package manager found; skipping package installation.\n' >&2
 fi
 
-section "Copying mono fonts"
 if [ "$OS" = "Darwin" ]; then
-    font_dir="$HOME/Library/Fonts"
+    section "Skipping Debian workstation modules on macOS"
+    printf '%s\n' 'The modular editor, share, desktop application, and desktop environment installers currently target Debian-based Linux.'
 else
-    font_dir="$HOME/.local/share/fonts"
-fi
-mkdir -p "$font_dir"
-for font in "$SCRIPT_DIR"/configs/fonts/*.otf; do
-    [ -e "$font" ] || continue
-    cp "$font" "$font_dir/"
-done
-if [ "$OS" != "Darwin" ] && command -v fc-cache >/dev/null 2>&1; then
-    fc-cache -f "$font_dir"
-fi
+    section "Selecting editor"
+    run_installer_once "editor" "$SCRIPT_DIR/scripts/tools/editors/select-editor.sh"
 
-section "Creating files and folders"
-mkdir -p "$HOME/backups"
-touch "$HOME/.aliases"
+    section "Installing Nerd Fonts"
+    run_installer_once "nerd-fonts" "$SCRIPT_DIR/scripts/tools/editors/install-nerd-fonts.sh"
 
-case "${SHELL:-}" in
-    */zsh) shell_rc="$HOME/.zshrc" ;;
-    *) shell_rc="$HOME/.bashrc" ;;
-esac
-append_once '# Load shared aliases installed by new-setup' "$shell_rc"
-append_once '[ -e "$HOME/.aliases" ] && source "$HOME/.aliases"' "$shell_rc"
+    section "Selecting terminal"
+    run_installer_once "terminal" "$SCRIPT_DIR/scripts/tools/terminals/select-terminal.sh"
 
-section "Installing Vundle"
-if [ ! -d "$HOME/.vim/bundle/Vundle.vim/.git" ]; then
-    git clone https://github.com/VundleVim/Vundle.vim.git "$HOME/.vim/bundle/Vundle.vim"
-fi
+    section "Installing shell aliases"
+    run_installer_once "aliases" "$SCRIPT_DIR/scripts/tools/install-aliases.sh"
 
-if [ "$OS" = "Darwin" ]; then
-    section "Skipping Linux Mint WebApp Manager on macOS"
-else
-    section "Installing WebApp Manager"
-    webapp_deb="${TMPDIR:-/tmp}/webapp-manager_1.4.5_all.deb"
-    if curl -fL 'http://packages.linuxmint.com/pool/main/w/webapp-manager/webapp-manager_1.4.5_all.deb' -o "$webapp_deb"; then
-        sudo dpkg -i "$webapp_deb" || sudo apt-get --fix-broken install -y
-        sudo dpkg --configure -a
-    else
-        printf 'Warning: could not download WebApp Manager.\n' >&2
-    fi
-fi
+    section "Installing tmux"
+    run_installer_once "tmux" "$SCRIPT_DIR/scripts/tools/install-tmux.sh"
 
-section "Setting up Vim and aliases"
-if [ -f "$HOME/.vimrc" ]; then
-    cp "$HOME/.vimrc" "$HOME/backups/vimrc.bak"
-fi
-cp "$SCRIPT_DIR/configs/vim/vimrc.txt" "$HOME/.vimrc"
-cp "$SCRIPT_DIR/configs/bash/bash_aliaes.txt" "$HOME/.aliases"
+    section "Setting up network shares"
+    run_installer "$SCRIPT_DIR/scripts/setup-shares.sh"
 
-if command -v vim >/dev/null 2>&1; then
-    vim +PluginInstall +qall
-else
-    printf 'Warning: vim is not available; skipping plugin installation.\n' >&2
+    section "Installing desktop applications"
+    desktop_installers=(
+        install-steam.sh
+        install-discord.sh
+        install-obsidian.sh
+        install-flameshot.sh
+        install-oh-my-zsh.sh
+        install-vscode.sh
+        install-docker-desktop.sh
+        install-vmware-workstation.sh
+        install-webapp-manager.sh
+    )
+    for installer in "${desktop_installers[@]}"; do
+        step_name="${installer%.sh}"
+        marker="$SETUP_STATE_DIR/$step_name.done"
+        if [ ! -f "$marker" ] && desktop_tool_installed "$installer"; then
+            printf 'Skipping already installed tool: %s\n' "$step_name"
+            mkdir -p "$SETUP_STATE_DIR"
+            touch "$marker"
+        else
+            run_installer_once "$step_name" "$SCRIPT_DIR/scripts/tools/$installer"
+        fi
+    done
+
+    section "Selecting desktop environment"
+    run_installer_once "desktop-environment" "$SCRIPT_DIR/scripts/desktop-env/select-de.sh"
 fi
 
 printf '\nSetup complete. Open a new terminal to load the aliases.\n'
