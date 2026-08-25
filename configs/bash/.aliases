@@ -29,7 +29,7 @@ alias DCRW="docker-compose run --rm web"
 
 #System Commands
 alias _full_update="sudo apt-get update && sudo apt-get -y upgrade --allow-downgrades && sudo apt autoremove -y && sudo apt dist-upgrade && sudo apt autoclean -y"
-alias _list_aliases="cat ~/.bash_aliases"
+alias _list_aliases="cat ~/.aliases"
 alias c!="clear"
 alias r!="sudo reboot"
 
