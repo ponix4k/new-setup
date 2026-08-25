@@ -72,7 +72,9 @@ bash scripts/tools/terminals/select-terminal.sh
 
 Both choices use the bundled `DroidSansM Nerd Font Mono` and the same Solarized Dark-inspired palette with 90% background opacity. They install a tracked configuration under `~/.config/`, register the selected application as Debian's `x-terminal-emulator`, and set it in `~/.config/xdg-terminals.list` for desktops using `xdg-terminal-exec`. Existing terminal configurations are backed up once under `~/backups/`.
 
-If Kitty or Ghostty and its configuration file already exist, the terminal selector treats that terminal as complete and skips reinstalling it.
+On macOS, the selector installs Kitty or Ghostty through Homebrew, applies the tracked configuration, and registers the selected app for `ssh:` and `telnet:` links. A third option skips terminal installation. macOS has no single system-wide default-terminal setting, so Terminal may still be used by Apple-specific workflows that explicitly launch it.
+
+The terminal selector is shown on every full setup run so you can change the selection or explicitly skip it. Homebrew leaves an already-current application installed when the same terminal is selected again.
 
 The Tool setup section also runs standalone installers for aliases and tmux:
 
@@ -108,6 +110,22 @@ The script installs CIFS support and configures these mount points:
 The entries are generated from `configs/scripts/fstab_entries.txt` and written to a managed block in `/etc/fstab`. Running the script again replaces that block instead of duplicating it. The original fstab is preserved at `/etc/fstab.new-setup.bak` the first time the script runs.
 
 SMB credentials are stored in `/etc/.creds/creds`. The credentials directory is owned by the current user with mode `0700`, and the credentials file uses mode `0600`.
+
+## Learning and reverse-engineering tools
+
+The macOS and Debian/Ubuntu setup paths install three standalone learning toolsets. Ubuntu's `universe` repository is enabled automatically where required. The installers support current 64-bit Ubuntu releases on AMD64 and ARM64; Ghidra is built natively for the host architecture.
+
+```bash
+bash scripts/tools/install-python-learning.sh
+bash scripts/tools/install-aws-basics.sh
+bash scripts/tools/install-reversing-tools.sh
+```
+
+The Python installer provides Python 3, virtual environments, pipx, pytest, Black, Ruff, and native build tools for Harvard CS50P and general Python study. Course projects should use a separate virtual environment rather than installing packages into the system Python.
+
+The AWS installer uses Homebrew on macOS and the official AWS CLI v2 installer on Linux. Prefer `aws configure sso` and a non-root practice account with billing alerts instead of storing long-lived root credentials.
+
+The reverse-engineering installer provides GDB, Binutils, QEMU, NASM, Patchelf, hex utilities, Radare2 on macOS, and Linux tracing and multilib tools. It clones Ghidra from the official NSA GitHub repository, reads the required Java version from the source, fetches dependencies with the included Gradle wrapper, and builds the distribution locally. The checkout is retained under `${XDG_DATA_HOME:-~/.local/share}/new-setup/ghidra-src`; override it with `GHIDRA_SOURCE_DIR`. Set `INSTALL_GHIDRA=0` to install only the command-line tools. GDB needs additional code-signing setup on macOS; LLDB is available through Xcode Command Line Tools. Run unknown binaries only inside a disposable, snapshotted VM with networking and shared folders restricted, and analyze only software you own or are authorized to inspect.
 
 ## Desktop setup
 

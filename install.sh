@@ -147,7 +147,15 @@ else
     printf 'Warning: no supported package manager found; skipping package installation.\n' >&2
 fi
 
+section "Installing learning and development tools"
+run_installer_once "python-learning" "$SCRIPT_DIR/scripts/tools/install-python-learning.sh"
+run_installer_once "aws-basics" "$SCRIPT_DIR/scripts/tools/install-aws-basics.sh"
+run_installer_once "reversing-tools" "$SCRIPT_DIR/scripts/tools/install-reversing-tools.sh"
+
 if [ "$OS" = "Darwin" ]; then
+    section "Selecting terminal"
+    run_installer "$SCRIPT_DIR/scripts/tools/terminals/select-terminal.sh"
+
     section "Skipping Debian workstation modules on macOS"
     printf '%s\n' 'The modular editor, share, desktop application, and desktop environment installers currently target Debian-based Linux.'
 else
@@ -158,7 +166,7 @@ else
     run_installer_once "nerd-fonts" "$SCRIPT_DIR/scripts/tools/editors/install-nerd-fonts.sh"
 
     section "Selecting terminal"
-    run_installer_once "terminal" "$SCRIPT_DIR/scripts/tools/terminals/select-terminal.sh"
+    run_installer "$SCRIPT_DIR/scripts/tools/terminals/select-terminal.sh"
 
     section "Installing shell aliases"
     run_installer_once "aliases" "$SCRIPT_DIR/scripts/tools/install-aliases.sh"
