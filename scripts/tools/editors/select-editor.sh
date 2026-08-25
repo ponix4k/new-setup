@@ -2,6 +2,29 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+nvim_config="${XDG_CONFIG_HOME:-$HOME/.config}/nvim/new-setup.vim"
+
+if command -v nvim >/dev/null 2>&1 && [ -f "$nvim_config" ]; then
+    echo "Neovim and its managed configuration are already installed; skipping editor selection."
+    exit 0
+fi
+
+if command -v vim >/dev/null 2>&1 \
+    && [ -f "$HOME/.vimrc" ] \
+    && [ -f "$HOME/.vim/new-setup/plugins.vim" ]; then
+    echo "Vim and its managed configuration are already installed; skipping editor selection."
+    exit 0
+fi
+
+if command -v emacs >/dev/null 2>&1 && [ -f "$HOME/.emacs.d/new-setup-plugins.el" ]; then
+    echo "Emacs and its managed plugins are already installed; skipping editor selection."
+    exit 0
+fi
+
+if command -v nano >/dev/null 2>&1 && [ -d "$HOME/.nano/nanorc/.git" ]; then
+    echo "Nano and its managed syntax plugins are already installed; skipping editor selection."
+    exit 0
+fi
 
 echo "Select an editor to install:"
 echo "  1) nano"

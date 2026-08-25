@@ -4,6 +4,8 @@
 
 > Review the scripts before running the full installer. It uses `sudo`, changes `/etc/fstab`, installs packages, and updates files in your home directory.
 
+Completed installer steps are recorded under `${XDG_STATE_HOME:-~/.local/state}/new-setup/` and skipped on later runs. Delete only the relevant `.done` marker when you intentionally want to rerun a completed step. Network-share setup is always rerun because its server and credentials may change.
+
 ## Run the full setup
 
 ```bash
@@ -69,6 +71,8 @@ bash scripts/tools/terminals/select-terminal.sh
 ```
 
 Both choices use the bundled `DroidSansM Nerd Font Mono` and the same Solarized Dark-inspired palette with 90% background opacity. They install a tracked configuration under `~/.config/`, register the selected application as Debian's `x-terminal-emulator`, and set it in `~/.config/xdg-terminals.list` for desktops using `xdg-terminal-exec`. Existing terminal configurations are backed up once under `~/backups/`.
+
+If Kitty or Ghostty and its configuration file already exist, the terminal selector treats that terminal as complete and skips reinstalling it.
 
 The Tool setup section also runs standalone installers for aliases and tmux:
 

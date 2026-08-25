@@ -4,6 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OS="$(uname -s)"
+SETUP_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/new-setup"
 
 if [ "${EUID:-$(id -u)}" -eq 0 ]; then
     printf '%s\n' 'Do not run this installer with sudo. Run ./install.sh as your normal user; it will request sudo when required.' >&2
@@ -15,14 +16,14 @@ section() {
 }
 
 append_once() {
-    line="$1"
-    file="$2"
+    local line="$1"
+    local file="$2"
     touch "$file"
     grep -Fqx "$line" "$file" 2>/dev/null || printf '%s\n' "$line" >> "$file"
 }
 
 run_installer() {
-    installer="$1"
+    local installer="$1"
     shift
 
     if [ ! -f "$installer" ]; then
@@ -31,6 +32,37 @@ run_installer() {
     fi
 
     bash "$installer" "$@"
+}
+
+run_installer_once() {
+    local step_name="$1"
+    local installer="$2"
+    shift 2
+    local marker="$SETUP_STATE_DIR/$step_name.done"
+
+    if [ -f "$marker" ]; then
+        printf 'Skipping completed step: %s\n' "$step_name"
+        return 0
+    fi
+
+    run_installer "$installer" "$@"
+    mkdir -p "$SETUP_STATE_DIR"
+    touch "$marker"
+}
+
+desktop_tool_installed() {
+    case "$1" in
+        install-steam.sh) command -v steam >/dev/null 2>&1 ;;
+        install-discord.sh) command -v discord >/dev/null 2>&1 || snap list discord >/dev/null 2>&1 ;;
+        install-obsidian.sh) command -v obsidian >/dev/null 2>&1 || snap list obsidian >/dev/null 2>&1 ;;
+        install-flameshot.sh) command -v flameshot >/dev/null 2>&1 ;;
+        install-oh-my-zsh.sh) command -v zsh >/dev/null 2>&1 && [ -d "$HOME/.oh-my-zsh" ] ;;
+        install-vscode.sh) command -v code >/dev/null 2>&1 || command -v code-insiders >/dev/null 2>&1 ;;
+        install-docker-desktop.sh) [ -x /opt/docker-desktop/bin/docker-desktop ] ;;
+        install-vmware-workstation.sh) command -v vmware >/dev/null 2>&1 ;;
+        install-webapp-manager.sh) command -v webapp-manager >/dev/null 2>&1 ;;
+        *) return 1 ;;
+    esac
 }
 
 section "New install setup"
@@ -120,19 +152,19 @@ if [ "$OS" = "Darwin" ]; then
     printf '%s\n' 'The modular editor, share, desktop application, and desktop environment installers currently target Debian-based Linux.'
 else
     section "Selecting editor"
-    run_installer "$SCRIPT_DIR/scripts/tools/editors/select-editor.sh"
+    run_installer_once "editor" "$SCRIPT_DIR/scripts/tools/editors/select-editor.sh"
 
     section "Installing Nerd Fonts"
-    run_installer "$SCRIPT_DIR/scripts/tools/editors/install-nerd-fonts.sh"
+    run_installer_once "nerd-fonts" "$SCRIPT_DIR/scripts/tools/editors/install-nerd-fonts.sh"
 
     section "Selecting terminal"
-    run_installer "$SCRIPT_DIR/scripts/tools/terminals/select-terminal.sh"
+    run_installer_once "terminal" "$SCRIPT_DIR/scripts/tools/terminals/select-terminal.sh"
 
     section "Installing shell aliases"
-    run_installer "$SCRIPT_DIR/scripts/tools/install-aliases.sh"
+    run_installer_once "aliases" "$SCRIPT_DIR/scripts/tools/install-aliases.sh"
 
     section "Installing tmux"
-    run_installer "$SCRIPT_DIR/scripts/tools/install-tmux.sh"
+    run_installer_once "tmux" "$SCRIPT_DIR/scripts/tools/install-tmux.sh"
 
     section "Setting up network shares"
     run_installer "$SCRIPT_DIR/scripts/setup-shares.sh"
@@ -150,11 +182,19 @@ else
         install-webapp-manager.sh
     )
     for installer in "${desktop_installers[@]}"; do
-        run_installer "$SCRIPT_DIR/scripts/tools/$installer"
+        step_name="${installer%.sh}"
+        marker="$SETUP_STATE_DIR/$step_name.done"
+        if [ ! -f "$marker" ] && desktop_tool_installed "$installer"; then
+            printf 'Skipping already installed tool: %s\n' "$step_name"
+            mkdir -p "$SETUP_STATE_DIR"
+            touch "$marker"
+        else
+            run_installer_once "$step_name" "$SCRIPT_DIR/scripts/tools/$installer"
+        fi
     done
 
     section "Selecting desktop environment"
-    run_installer "$SCRIPT_DIR/scripts/desktop-env/select-de.sh"
+    run_installer_once "desktop-environment" "$SCRIPT_DIR/scripts/desktop-env/select-de.sh"
 fi
 
 printf '\nSetup complete. Open a new terminal to load the aliases.\n'
